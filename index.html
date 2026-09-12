@@ -48,6 +48,8 @@
   .thumb{position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--radius);overflow:hidden;background:#ddd}
   .thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .25s}
   .vcard:hover .thumb img{transform:scale(1.04)}
+  .vcard.watched .thumb img{opacity:.5}
+  .thumb .seen{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.75);color:#fff;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px}
   .thumb .dur{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.8);color:#fff;font-size:12px;font-weight:600;padding:2px 6px;border-radius:5px}
   .meta{display:flex;gap:12px;margin-top:12px}
   .avatar{width:36px;height:36px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-weight:800;font-size:16px;overflow:hidden;background:#888}
@@ -272,7 +274,7 @@
       <div class="hint">New uploads are picked up automatically about once an hour; press Refresh to check right away. Shorts are never shown — only regular videos.</div>
 
       <label>Screen time</label>
-      <div class="row"><button class="btn light" id="optTimeBtn">Set / add time for today</button><button class="btn light" id="optTimeReset">Clear today's timer</button></div>
+      <div class="row"><button class="btn light" id="optTimeBtn">Set / add time for today</button><button class="btn light" id="optTimeReset">Clear today's timer</button><button class="btn light" id="clearWatched">Clear "watched" marks</button></div>
       <div class="hint">The kid sees a bar with the time left. When it runs out, the current video may finish, then KidTube says good night until a parent adds time.</div>
 
       <label>Change PIN</label>
@@ -300,6 +302,18 @@
   ];
   const defaults = { pinHash: null, apiKey: '', limit: 24, channels: [], videos: [], timer: null }; // timer: {day, total, left}
   let S = load();
+  // Starter set: every new visitor gets these channels; a parent can remove or add more.
+  const STARTER = [
+    { id: 'UCs_uv3QyUIQjBoL1Ij5BdlQ', name: 'Фиксики',                cat: 'cartoons' },
+    { id: 'UCdSaNPMpj-Vi_SF6_MAFpSw', name: 'Три Кота',               cat: 'cartoons' },
+    { id: 'UCDL9XukzFVU7rfOS6-m-EHQ', name: 'Про Миру и Гошу',        cat: 'cartoons' },
+    { id: 'UCpNzWUlO6PVb_v7chefBnig', name: 'Галилео',                cat: 'learn' },
+    { id: 'UCzQ7Y5D00ilosszmvdCsECw', name: 'Каждый день умнее',      cat: 'learn' },
+  ];
+  if (!S.seeded) {
+    STARTER.forEach(c => { if (!S.channels.some(x => x.id === c.id)) S.channels.push({...c, thumb: ''}); });
+    S.seeded = true; save();
+  }
   // channels/videos added before categories existed are cartoons
   S.channels.forEach(c => { if (!CATS.some(k => k.id === c.cat)) c.cat = 'cartoons'; });
   S.videos.forEach(v => { if (!CATS.some(k => k.id === v.cat)) v.cat = 'cartoons'; });
@@ -417,11 +431,14 @@
     meta.append(el('div', {}, titleEl, subEl));
     const th = el('div', {class:'thumb'}, el('img', {src: v.thumb, alt:'', loading:'lazy'}));
     if (v.dur) th.append(el('span',{class:'dur'}, v.dur));
-    const card = el('button', {class:'vcard', onclick: () => play(titleEl.textContent, v.id)}, th, meta);
+    const seen = isWatched(v.id);
+    if (seen) th.append(el('span',{class:'seen'}, '✓ Watched'));
+    const card = el('button', {class:'vcard' + (seen ? ' watched' : ''), onclick: () => play(titleEl.textContent, v.id)}, th, meta);
     if (!v.title) { // title not known yet: fill it in from oEmbed when it arrives
       titleEl.textContent = '…';
       videoMeta(v.id).then(mt => { if (mt) { titleEl.textContent = mt.title; if (!v.channelName) subEl.textContent = mt.author; } else titleEl.textContent = 'Video'; });
     }
+    card._vid = v.id;
     return card;
   }
 
@@ -547,6 +564,14 @@
     return p;
   }
 
+  // ---------------- watched videos ----------------
+  const WATCH_KEY = 'kidtube.watched';
+  let watched = null;
+  function loadWatched(){ if (!watched) { try { watched = JSON.parse(localStorage.getItem(WATCH_KEY) || '{}'); } catch { watched = {}; } } return watched; }
+  function isWatched(id){ return !!loadWatched()[id]; }
+  function markWatched(id){ loadWatched()[id] = Date.now(); try { localStorage.setItem(WATCH_KEY, JSON.stringify(watched)); } catch {}
+    document.querySelectorAll('.vcard').forEach(c => { if (c._vid === id && !c.classList.contains('watched')) { c.classList.add('watched'); c.querySelector('.thumb')?.append(el('span',{class:'seen'}, '✓ Watched')); } }); }
+
   // ---------------- screen-time timer ----------------
   const today = () => new Date().toISOString().slice(0,10);
   const T = {
@@ -623,7 +648,7 @@
             const st = e.data;
             const wasPlaying = playing;
             playing = st === YT.PlayerState.PLAYING;
-            if (playing && !wasPlaying) { lastTick = Date.now(); }
+            if (playing && !wasPlaying) { lastTick = Date.now(); markWatched(videoId); }
             if (st === YT.PlayerState.ENDED) { playing = false; if (T.active() && S.timer.left <= 0) { stop(); showDone(); } }
             save(); renderTime();
           }
@@ -632,7 +657,7 @@
       // fallback: plain embed (no play/pause tracking)
       $('#pframe').innerHTML = '';
       $('#pframe').append(el('iframe', {src: embedBase + videoId + '?' + embedParams, allow:'autoplay; encrypted-media; fullscreen; picture-in-picture', allowfullscreen:''}));
-      playing = true; lastTick = Date.now();
+      playing = true; lastTick = Date.now(); markWatched(videoId);
     });
   }
   function stop(){
@@ -793,6 +818,7 @@
   $('#limitSave').onclick = () => { const n = parseInt($('#limitInput').value, 10); S.limit = Math.min(50, Math.max(1, n || 24)); $('#limitInput').value = S.limit; cache.clear(); save(); };
   $('#refreshBtn').onclick = () => { cache.clear(); try { localStorage.removeItem(PL_KEY); } catch {} status('#keyStatus', 'Video lists will reload when you close settings.', true); };
   $('#optTimeBtn').onclick = () => { $('#setModal').hidden = true; showStart(); };
+  $('#clearWatched').onclick = () => { watched = {}; try { localStorage.removeItem(WATCH_KEY); } catch {} status('#keyStatus', 'Watched marks cleared.', true); };
   $('#optTimeReset').onclick = () => { S.timer = null; save(); renderTime(); status('#keyStatus', 'Timer cleared.', true); };
   $('#pinChange').onclick =() => { $('#setModal').hidden = true; openPin('set', openSettings); };
   $('#exportBtn').onclick = async () => {
