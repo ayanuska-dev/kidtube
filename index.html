@@ -299,20 +299,47 @@
     { id: 'cartoons', label: 'Cartoons',      ico: '🎬' },
     { id: 'learn',    label: 'Learning',      ico: '🧠' },
     { id: 'move',     label: 'Dance & Sport', ico: '🤸' },
+    { id: 'craft',    label: 'Craft & Science', ico: '✂️' },
   ];
   const defaults = { pinHash: null, apiKey: '', limit: 24, channels: [], videos: [], timer: null }; // timer: {day, total, left}
   let S = load();
   // Starter set: every new visitor gets these channels; a parent can remove or add more.
   const STARTER = [
-    { id: 'UCs_uv3QyUIQjBoL1Ij5BdlQ', name: 'Фиксики',                cat: 'cartoons' },
-    { id: 'UCdSaNPMpj-Vi_SF6_MAFpSw', name: 'Три Кота',               cat: 'cartoons' },
-    { id: 'UCDL9XukzFVU7rfOS6-m-EHQ', name: 'Про Миру и Гошу',        cat: 'cartoons' },
-    { id: 'UCpNzWUlO6PVb_v7chefBnig', name: 'Галилео',                cat: 'learn' },
-    { id: 'UCzQ7Y5D00ilosszmvdCsECw', name: 'Каждый день умнее',      cat: 'learn' },
+    // Cartoons
+    { id: 'UCs_uv3QyUIQjBoL1Ij5BdlQ', name: 'Фиксики',                 cat: 'cartoons' },
+    { id: 'UCdSaNPMpj-Vi_SF6_MAFpSw', name: 'Три Кота',                cat: 'cartoons' },
+    { id: 'UCDL9XukzFVU7rfOS6-m-EHQ', name: 'Про Миру и Гошу',         cat: 'cartoons' },
+    { id: 'UC5A-Wp9ujcr5g9sYagAafEA', name: 'Смешарики',               cat: 'cartoons' },
+    { id: 'UCxaznoDkqXdpsP4H273CXRg', name: 'Пин-код',                 cat: 'cartoons' },
+    { id: 'UC_sl0iB9sVbKmc7YJdQA78w', name: 'Жила-была Царевна',       cat: 'cartoons' },
+    { id: 'UCpcsHUwpxO8tDqjoX4bzhWQ', name: 'Бодо Бородо',             cat: 'cartoons' },
+    // Learning
+    { id: 'UCpNzWUlO6PVb_v7chefBnig', name: 'Галилео',                 cat: 'learn' },
+    { id: 'UCzQ7Y5D00ilosszmvdCsECw', name: 'Каждый день умнее',       cat: 'learn' },
+    { id: 'UC9mbGus86ycQUSmzyYbcLRg', name: 'Смарта и Чудо-сумка',     cat: 'learn' },
+    { id: 'UC6Df49Wle_y7PhDCZlBv5nw', name: 'Теремок School (Аркадий Паровозов)', cat: 'learn' },
+    { id: 'UCiR_DVo6Zf7Pye92bPLTOCQ', name: 'СТС Kids (Развлечёба)',   cat: 'learn' },
+    // Dance & Sport
+    { id: 'UCNFwhx2ywzKSJIlAhA5GFWw', name: 'Чударики',                cat: 'move' },
+    { id: 'UCLGNRcrM22pwEb1VcgJlt1A', name: 'Детские танцы и песни',   cat: 'move' },
+    { id: 'UCbfNC9wAAcBUSFz1WeNxz5g', name: 'GymBalance — художественная гимнастика', cat: 'move' },
+    { id: 'UCRXB8Lm__Zb-rSyZpb0iFog', name: 'Гимнастика и растяжка',   cat: 'move' },
+    { id: 'UC5pkIa3pTkCz5vZyykzwlCg', name: 'Педагогическая мастерская — онлайн-тренировки 4–6 лет', cat: 'move' },
+    // Craft & Science
+    { id: 'UCzWnF-3UWAGNeK5fIkBmahg', name: 'Простая наука',           cat: 'craft' },
+    { id: 'UCHFPMoO0qxzjZk_j48UZJ1g', name: 'Юный Алхимик',            cat: 'craft' },
+    { id: 'UC8lnmTA5u9sfqbHtDeNClAQ', name: 'Hello Origami',           cat: 'craft' },
+    { id: 'UCYT9HvLLRpvuH-J8oC366VA', name: 'Мир поделок',             cat: 'craft' },
+    { id: 'UCBeSEQJaSyj7QgopiztulsQ', name: 'Как это сделано',         cat: 'craft' },
   ];
-  if (!S.seeded) {
+  const STARTER_VIDEOS = [
+    { id: 'zwHq8wAi3L0', title: 'Растяжка для детей 5–8 лет', channel: 'UNICEF Belarus', cat: 'move' },
+  ];
+  const SEED_VERSION = 2; // bump when STARTER changes: existing users get the new channels merged in
+  if ((S.seedVersion || 0) < SEED_VERSION) {
     STARTER.forEach(c => { if (!S.channels.some(x => x.id === c.id)) S.channels.push({...c, thumb: ''}); });
-    S.seeded = true; save();
+    STARTER_VIDEOS.forEach(v => { if (!S.videos.some(x => x.id === v.id)) S.videos.push({...v}); });
+    S.seeded = true; S.seedVersion = SEED_VERSION; save();
   }
   // channels/videos added before categories existed are cartoons
   S.channels.forEach(c => { if (!CATS.some(k => k.id === c.cat)) c.cat = 'cartoons'; });
