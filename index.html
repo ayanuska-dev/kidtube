@@ -61,6 +61,14 @@
   .ccard .name{font-weight:700;font-size:17px;text-align:center;line-height:1.3}
   .ccard .count{color:var(--muted);font-size:13px}
 
+  .cats{display:flex;gap:14px;padding:18px 20px 4px;max-width:1600px;margin:0 auto;flex-wrap:wrap}
+  .cat{flex:1 1 140px;max-width:260px;border:0;border-radius:22px;padding:18px 12px 14px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--text);transition:transform .15s,box-shadow .15s;border:3px solid transparent}
+  .cat:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.12)}
+  .cat.on{border-color:var(--red)}
+  .cat .ico{font-size:44px;line-height:1}
+  .cat .lbl{font-weight:800;font-size:16px}
+  select.catsel{font:inherit;padding:10px 12px;border:1px solid #ccc;border-radius:10px;background:#fff;color:var(--text)}
+  .item select.catsel{padding:6px 8px;font-size:13px;max-width:150px}
   .empty{text-align:center;color:var(--muted);padding:80px 20px;font-size:17px;line-height:1.6}
   .empty .big{font-size:56px;margin-bottom:10px}
 
@@ -131,6 +139,7 @@
   </button>
 </header>
 
+<div class="cats" id="cats"></div>
 <main id="main"></main>
 
 <!-- Player -->
@@ -166,7 +175,7 @@
 
     <div class="body" id="tab-channels">
       <label>Add a channel (paste channel link or ID)</label>
-      <div class="row"><input type="text" id="chInput" placeholder="https://www.youtube.com/@ChannelName  or  UCxxxxxxxxxxxxxxxxxxxxxx"><button class="btn red" id="chAdd">Add</button></div>
+      <div class="row"><input type="text" id="chInput" placeholder="https://www.youtube.com/channel/UC…  or  UCxxxxxxxxxxxxxxxxxxxxxx"><select class="catsel" id="chCat"></select><button class="btn red" id="chAdd">Add</button></div>
       <div class="status" id="chStatus"></div>
       <div class="hint" id="chHint">
         Works with <code>youtube.com/channel/UC…</code> and <code>youtubekids.com/channel/UC…</code> links, and raw channel IDs.
@@ -177,9 +186,9 @@
 
     <div class="body" id="tab-videos" hidden>
       <label>Add a single video (paste video link)</label>
-      <div class="row"><input type="text" id="vidInput" placeholder="https://www.youtube.com/watch?v=…"><button class="btn red" id="vidAdd">Add</button></div>
+      <div class="row"><input type="text" id="vidInput" placeholder="https://www.youtube.com/watch?v=…"><select class="catsel" id="vidCat"></select><button class="btn red" id="vidAdd">Add</button></div>
       <div class="status" id="vidStatus"></div>
-      <div class="hint">Approved videos appear under <b>My videos</b> on the home screen, no matter which channel they come from.</div>
+      <div class="hint">Approved single videos are mixed into the feed of their category, no matter which channel they come from.</div>
       <div class="list" id="vidList"></div>
     </div>
 
@@ -195,7 +204,7 @@
 
       <label>Videos shown per channel</label>
       <div class="row"><input type="text" id="limitInput" inputmode="numeric" placeholder="24" style="max-width:120px"><button class="btn light" id="limitSave">Save</button><button class="btn light" id="refreshBtn">Refresh videos now</button></div>
-      <div class="hint">New uploads are picked up automatically about once an hour; press Refresh to check right away.</div>
+      <div class="hint">New uploads are picked up automatically about once an hour; press Refresh to check right away. Shorts are never shown — only regular videos.</div>
 
       <label>Change PIN</label>
       <button class="btn light" id="pinChange">Set a new PIN</button>
@@ -215,8 +224,16 @@
 (() => {
   // ---------------- storage ----------------
   const KEY = 'kidtube.v1';
+  const CATS = [
+    { id: 'cartoons', label: 'Cartoons',      ico: '🎬' },
+    { id: 'learn',    label: 'Learning',      ico: '🧠' },
+    { id: 'move',     label: 'Dance & Sport', ico: '🤸' },
+  ];
   const defaults = { pinHash: null, apiKey: '', limit: 24, channels: [], videos: [] };
   let S = load();
+  // channels/videos added before categories existed are cartoons
+  S.channels.forEach(c => { if (!CATS.some(k => k.id === c.cat)) c.cat = 'cartoons'; });
+  S.videos.forEach(v => { if (!CATS.some(k => k.id === v.cat)) v.cat = 'cartoons'; });
   function load(){ try { return Object.assign({}, defaults, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { return {...defaults}; } }
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} }
 
@@ -282,7 +299,7 @@
   const embedParams = 'rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&autoplay=1' + (/^https?:$/.test(location.protocol) ? '&origin=' + encodeURIComponent(location.origin) : '');
 
   // ---------------- kid UI ----------------
-  let view = { type: 'home' }; // or {type:'channel', id}
+  let view = { type: 'home', cat: 'cartoons' }; // cat filters the feed; or {type:'channel', id}
   const cache = new Map();
 
   function avatar(ch, cls=''){
@@ -294,7 +311,15 @@
 
   function go(v){ view = v; render(); window.scrollTo(0,0); }
 
+  function renderCats(){
+    const c = $('#cats'); c.innerHTML = '';
+    c.hidden = !S.channels.length && !S.videos.length;
+    CATS.forEach(k => c.append(el('button', {class: 'cat' + (view.type==='home' && view.cat===k.id ? ' on' : ''), onclick: () => go({type:'home', cat: k.id})},
+      el('div', {class:'ico'}, k.ico), el('div', {class:'lbl'}, k.label))));
+  }
+
   function render(){
+    renderCats();
     const m = $('#main'); m.innerHTML = '';
     if (view.type === 'home') return renderHome(m);
     renderChannel(m, S.channels.find(c => c.id === view.id));
@@ -305,7 +330,14 @@
       m.append(el('div', {class:'empty'}, el('div',{class:'big'},'📺'), 'Nothing here yet.', el('br'), 'A parent can add channels with the ⚙ button in the corner.'));
       return;
     }
-    renderFeed(m, S.channels, true);
+    const chans = S.channels.filter(c => c.cat === view.cat);
+    const singles = S.videos.filter(v => v.cat === view.cat);
+    if (!chans.length && !singles.length) {
+      const k = CATS.find(k => k.id === view.cat);
+      m.append(el('div', {class:'empty'}, el('div',{class:'big'}, k.ico), 'Nothing in ' + k.label + ' yet.'));
+      return;
+    }
+    renderFeed(m, chans, singles);
   }
 
   function videoCard(v){
@@ -327,12 +359,12 @@
   async function renderChannel(m, ch){
     if (!ch) return go({type:'home'});
     m.append(el('h2', {class:'section'}, avatar(ch), ch.name));
-    renderFeed(m, [ch], false);
+    renderFeed(m, [ch], []);
   }
 
   // Build a mixed feed: newest videos of every channel, interleaved like a YouTube home page
   const isLocalFile = location.protocol === 'file:';
-  async function renderFeed(m, channels, includeSingles){
+  async function renderFeed(m, channels, singles){
     const token = ++feedToken;
     if (isLocalFile) {
       m.append(el('div', {class:'empty'}, el('div',{class:'big'},'🌐'),
@@ -349,8 +381,8 @@
     if (token !== feedToken) return;
     box.remove();
     const columns = lists.slice();
-    if (includeSingles && S.videos.length)
-      columns.unshift(S.videos.map(v => ({id: v.id, title: v.title || '', thumb: 'https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg', channelName: v.channel || '', channel: null})));
+    if (singles && singles.length)
+      columns.unshift(singles.map(v => ({id: v.id, title: v.title || '', thumb: 'https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg', channelName: v.channel || '', channel: null})));
     const seen = new Set(); let any = false;
     for (let i = 0; columns.some(c => i < c.length); i++)
       for (const c of columns) if (c[i] && !seen.has(c[i].id)) { seen.add(c[i].id); any = true; g.append(videoCard(c[i])); }
@@ -361,7 +393,7 @@
   async function channelVideos(ch, limit){
     const k = ch.id + ':' + limit + ':' + (S.apiKey ? 'api' : 'pl');
     if (cache.has(k) && Date.now() - cache.get(k).t < 15*60e3) return cache.get(k).v;
-    const pl = 'UU' + ch.id.slice(2);
+    const pl = 'UULF' + ch.id.slice(2); // UULF = long-form uploads only (no Shorts)
     let v;
     if (S.apiKey) {
       const list = await yt('playlistItems', {part:'snippet,contentDetails', playlistId: pl, maxResults: Math.min(50, Math.max(1, limit|0 || 24))});
@@ -507,6 +539,12 @@
   };
 
   // ---------------- settings ----------------
+  function catSelect(value, onchange){
+    const sel = el('select', {class:'catsel', onchange: e => onchange(e.target.value)});
+    CATS.forEach(k => sel.append(el('option', {value: k.id, selected: k.id === value ? '' : false}, k.ico + ' ' + k.label)));
+    return sel;
+  }
+  ['#chCat','#vidCat'].forEach(id => { const s = $(id); CATS.forEach(k => s.append(el('option', {value:k.id}, k.ico + ' ' + k.label))); });
   function openSettings(){ $('#setModal').hidden = false; refreshLists(); $('#keyInput').value = S.apiKey; $('#limitInput').value = S.limit; keyBadge(); }
   function closeSettings(){ $('#setModal').hidden = true; render(); }
   $('#setClose').onclick = closeSettings;
@@ -522,12 +560,14 @@
     if (!S.channels.length) cl.append(el('div', {class:'item'}, el('div',{class:'t'}, el('small',{}, 'No channels yet'))));
     S.channels.forEach((ch, i) => cl.append(el('div', {class:'item'}, avatar(ch),
       el('div',{class:'t'}, el('b',{}, ch.name), el('small',{}, ch.id)),
+      catSelect(ch.cat, v => { ch.cat = v; save(); }),
       el('button', {class:'x', title:'Remove', onclick: () => { S.channels.splice(i,1); save(); refreshLists(); }}, '✕'))));
     const vl = $('#vidList'); vl.innerHTML = '';
     if (!S.videos.length) vl.append(el('div', {class:'item'}, el('div',{class:'t'}, el('small',{}, 'No single videos yet'))));
     S.videos.forEach((v, i) => vl.append(el('div', {class:'item'},
       el('img', {src:'https://i.ytimg.com/vi/' + v.id + '/default.jpg', style:'width:60px;height:34px;object-fit:cover;border-radius:6px', alt:''}),
       el('div',{class:'t'}, el('b',{}, v.title || v.id), el('small',{}, v.channel || v.id)),
+      catSelect(v.cat, c => { v.cat = c; save(); }),
       el('button', {class:'x', title:'Remove', onclick: () => { S.videos.splice(i,1); save(); refreshLists(); }}, '✕'))));
   }
 
@@ -535,15 +575,16 @@
   $('#chInput').addEventListener('keydown', e => e.key === 'Enter' && addChannel());
   async function addChannel(){
     const p = parseChannel($('#chInput').value);
+    if (!$('#chInput').value.trim()) return status('#chStatus', 'Paste a channel link or ID first.');
     if (!p) return status('#chStatus', 'That does not look like a YouTube channel link or ID.', false);
     status('#chStatus', 'Adding…');
-    let ch = { id: p.id, name: '', thumb: '' };
+    let ch = { id: p.id, name: '', thumb: '', cat: $('#chCat').value };
     try {
       if (S.apiKey) {
         const r = await yt('channels', {part:'snippet', ...(p.id ? {id: p.id} : {forHandle: p.handle})});
         const c = r.items?.[0];
         if (!c) return status('#chStatus', 'Channel not found.', false);
-        ch = { id: c.id, name: c.snippet.title, thumb: c.snippet.thumbnails?.medium?.url || c.snippet.thumbnails?.default?.url || '' };
+        ch = { id: c.id, name: c.snippet.title, thumb: c.snippet.thumbnails?.medium?.url || c.snippet.thumbnails?.default?.url || '', cat: $('#chCat').value };
       } else if (p.handle) {
         return status('#chStatus', '@handle links need an API key. Paste the channel ID (UC…) instead — see the tip below.', false);
       } else {
@@ -564,7 +605,7 @@
     const id = parseVideo($('#vidInput').value);
     if (!id) return status('#vidStatus', 'That does not look like a YouTube video link.', false);
     status('#vidStatus', 'Adding…');
-    let v = { id, title: '', channel: '' };
+    let v = { id, title: '', channel: '', cat: $('#vidCat').value };
     try {
       if (S.apiKey) {
         const r = await yt('videos', {part:'snippet', id});
@@ -600,7 +641,7 @@
   };
   $('#importBtn').onclick = () => {
     const t = prompt('Paste the settings text:'); if (!t) return;
-    try { const j = JSON.parse(t); if (!Array.isArray(j.channels)) throw 0; Object.assign(S, {channels: j.channels, videos: j.videos || [], apiKey: j.apiKey || S.apiKey, limit: j.limit || S.limit}); save(); refreshLists(); keyBadge(); cache.clear(); status('#bkStatus', 'Settings restored.', true); }
+    try { const j = JSON.parse(t); if (!Array.isArray(j.channels)) throw 0; Object.assign(S, {channels: j.channels, videos: j.videos || [], apiKey: j.apiKey || S.apiKey, limit: j.limit || S.limit}); S.channels.forEach(c => { if (!CATS.some(k => k.id === c.cat)) c.cat = 'cartoons'; }); S.videos.forEach(v => { if (!CATS.some(k => k.id === v.cat)) v.cat = 'cartoons'; }); save(); refreshLists(); keyBadge(); cache.clear(); status('#bkStatus', 'Settings restored.', true); }
     catch { status('#bkStatus', 'That text is not valid KidTube settings.', false); }
   };
 
