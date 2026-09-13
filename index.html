@@ -187,6 +187,47 @@
   .log-day .cats-sum{display:flex;gap:8px;flex-wrap:wrap;padding:8px 12px 0}
   .log-day .item .t small{display:block}
   .log-day .mins{font-weight:700;font-size:13px;white-space:nowrap}
+
+  /* ---------- weekly overview ---------- */
+  .week{border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin-top:14px;background:var(--card)}
+  .week .big{font-size:30px;font-weight:800;letter-spacing:-.5px;line-height:1.1}
+  .week .sub{margin-top:2px}
+  .week .bars{display:flex;height:14px;border-radius:999px;overflow:hidden;background:var(--chip);margin:14px 0 8px}
+  .week .bars i{display:block;height:100%}
+  .week .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;font-weight:600}
+  .week .legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);margin-right:6px;vertical-align:-1px}
+  .week .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+  .week .fact{background:var(--chip);border-radius:12px;padding:10px 12px}
+  .week .fact small{display:block;color:var(--muted);font-size:12px;font-weight:600}
+  .week .fact b{font-size:15px}
+  .week .act{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+
+  /* ---------- onboarding ---------- */
+  .onb-cat{font-weight:800;font-size:15px;margin:16px 0 6px;display:flex;gap:8px;align-items:center}
+  .onb-item{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:12px;cursor:pointer}
+  .onb-item:hover{background:var(--chip)}
+  .onb-item input{width:22px;height:22px;accent-color:var(--red);flex:none}
+  .onb-item .avatar{width:38px;height:38px;font-size:15px}
+  .onb-item b{font-size:14px;font-weight:600}
+  .onb-item.added{opacity:.55}
+  .onb-item.added b::after{content:" · already added";color:var(--muted);font-weight:500}
+
+  /* ---------- kid profiles ---------- */
+  .profchip{display:flex;align-items:center;gap:8px;border:2px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px 6px 8px;font-weight:700;font-size:15px;color:var(--text)}
+  .profchip:hover{border-color:var(--text)}
+  .profchip .pe{font-size:22px;line-height:1}
+  .ptiles{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin:14px 0 6px}
+  .ptile{border:3px solid transparent;background:var(--chip);border-radius:22px;padding:18px 14px 14px;min-width:130px;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--text);transition:transform .15s}
+  .ptile:hover{transform:translateY(-3px)}
+  .ptile.on{border-color:var(--red);background:#fff2f4}
+  .ptile .pe{font-size:52px;line-height:1}
+  .ptile .pn{font-weight:800;font-size:17px}
+  .ptile .pt{font-size:12px;color:var(--muted);font-weight:600}
+  .emojipick{display:flex;flex-wrap:wrap;gap:6px}
+  .emojipick button{border:2px solid transparent;background:var(--chip);border-radius:10px;font-size:22px;width:42px;height:42px;padding:0}
+  .emojipick button.on{border-color:var(--red)}
+  .item input.pname{flex:1;min-width:0;padding:8px 10px;border:1px solid #ccc;border-radius:8px;font-size:14px}
+  .item .pemoji{font-size:26px;width:34px;text-align:center}
 </style>
 </head>
 <body>
@@ -194,6 +235,7 @@
 <header>
   <div class="logo" id="homeBtn" title="Home"><span class="mark"></span>KidTube</div>
   <div class="spacer"></div>
+  <button class="profchip" id="profBtn" title="Switch kid" hidden><span class="pe" id="profEmoji">🐣</span><span id="profName"></span></button>
   <button class="iconbtn" id="fsBtn" title="Full screen" aria-label="Full screen"><svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></button>
   <button class="iconbtn" id="parentBtn" title="Parent settings" aria-label="Parent settings">
     <svg viewBox="0 0 24 24"><path d="M19.4 13a7.6 7.6 0 0 0 .1-1 7.6 7.6 0 0 0-.1-1l2.1-1.6a.5.5 0 0 0 .1-.6l-2-3.5a.5.5 0 0 0-.6-.2l-2.5 1a7.3 7.3 0 0 0-1.7-1l-.4-2.6a.5.5 0 0 0-.5-.4h-4a.5.5 0 0 0-.5.4l-.4 2.6a7.3 7.3 0 0 0-1.7 1l-2.5-1a.5.5 0 0 0-.6.2l-2 3.5a.5.5 0 0 0 .1.6L4.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6a.5.5 0 0 0-.1.6l2 3.5c.1.2.4.3.6.2l2.5-1a7.3 7.3 0 0 0 1.7 1l.4 2.6c0 .2.2.4.5.4h4c.2 0 .5-.2.5-.4l.4-2.6a7.3 7.3 0 0 0 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.5a.5.5 0 0 0-.1-.6L19.4 13zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
@@ -219,6 +261,34 @@
     <button class="iconbtn fsbtn" id="pfsBtn" title="Full screen" aria-label="Full screen"><svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></button>
   </div>
   <div class="frame"><div id="pframe"></div></div>
+</div>
+
+<!-- First run: parent approves the recommended channels -->
+<div class="modal" id="onbModal" hidden>
+  <div class="sheet" style="max-width:640px">
+    <div class="head"><h3>👋 Welcome to KidTube</h3><button class="iconbtn" id="onbClose" aria-label="Close">✕</button></div>
+    <div class="body">
+      <div class="hint" style="font-size:14px;margin:0 0 6px">Kids only see what a parent has approved. We prepared <b id="onbCount"></b> recommended channels — tick the ones you approve. You can add or remove channels any time in ⚙ settings.</div>
+      <div class="row" style="justify-content:flex-end;gap:6px"><button class="btn light" id="onbAll" style="padding:7px 14px">Select all</button><button class="btn light" id="onbNone" style="padding:7px 14px">Select none</button></div>
+      <div id="onbList"></div>
+      <div class="row" style="margin-top:18px;justify-content:space-between;align-items:center">
+        <button class="btn light" id="onbSkip">Skip — start with an empty list</button>
+        <button class="btn red" id="onbApprove" style="font-size:16px;padding:13px 26px">Approve selected ✓</button>
+      </div>
+      <div class="hint" id="onbHint">You will create a 4-digit parent PIN next.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Kid profiles: who is watching? -->
+<div class="modal" id="profModal" hidden>
+  <div class="sheet" style="max-width:640px">
+    <div class="head"><h3>👋 Who's watching?</h3><button class="iconbtn" id="profClose" aria-label="Close">✕</button></div>
+    <div class="body center">
+      <div class="ptiles" id="ptiles"></div>
+      <div class="hint">Each kid has their own screen time, favorites and history. Parents add kids in ⚙ settings → Options.</div>
+    </div>
+  </div>
 </div>
 
 <!-- Screen-time: start of the day -->
@@ -282,7 +352,8 @@
     <div class="body" id="tab-log" hidden>
       <div class="row" style="align-items:center;justify-content:space-between">
         <div class="hint" style="margin:0">What was watched and for how long, last 14 days. Time counts only while a video is actually playing.</div>
-        <button class="btn light" id="logClear">Clear log</button>
+        <select class="catsel" id="logProf" hidden></select>
+        <button class="btn light" id="logClear" style="white-space:nowrap">Clear log</button>
       </div>
       <div id="logBody"></div>
     </div>
@@ -323,6 +394,19 @@
       <div class="row"><button class="btn light" id="optTimeBtn">Set / add time for today</button><button class="btn light" id="optTimeReset">Clear today's timer</button><button class="btn light" id="clearWatched">Clear "watched" marks</button></div>
       <div class="hint">The kid sees a bar with the time left. When it runs out, the current video may finish, then KidTube says good night until a parent adds time.</div>
 
+      <label>Kids</label>
+      <div class="list" id="profList"></div>
+      <div class="row" style="margin-top:10px;align-items:center;flex-wrap:wrap">
+        <input type="text" id="newProfName" placeholder="Child's name" style="max-width:200px">
+        <div class="emojipick" id="newProfEmoji"></div>
+        <button class="btn light" id="addProf">Add a kid</button>
+      </div>
+      <div class="hint">Each kid gets their own screen-time timer, favorites, "continue watching" and watch log. Channels and the PIN are shared. With two or more kids, a "Who's watching?" screen appears when KidTube opens.</div>
+
+      <label>Recommended channels</label>
+      <button class="btn light" id="optOnb">Show the recommended list…</button>
+      <div class="hint">Pick more channels from our recommended set, or see which ones you already added.</div>
+
       <label>Change PIN</label>
       <button class="btn light" id="pinChange">Set a new PIN</button>
 
@@ -349,6 +433,20 @@
   ];
   const defaults = { pinHash: null, apiKey: '', limit: 24, channels: [], videos: [], timer: null }; // timer: {day, total, left}
   let S = load();
+  // ---- kid profiles: channels/PIN are shared, timer + history are per kid ----
+  const PROF_KEY = 'kidtube.profiles';
+  let P; try { P = JSON.parse(localStorage.getItem(PROF_KEY)); } catch {}
+  if (!P || !Array.isArray(P.list) || !P.list.length) P = { list: [{ id: 'p1', name: 'Kid', emoji: '🐣' }], current: 'p1' };
+  if (!P.list.some(p => p.id === P.current)) P.current = P.list[0].id;
+  const saveP = () => { try { localStorage.setItem(PROF_KEY, JSON.stringify(P)); } catch {} };
+  const curProf = () => P.list.find(p => p.id === P.current) || P.list[0];
+  // per-kid storage key; the first kid keeps the original (un-suffixed) keys so nothing is lost
+  const pk = (k, pid = P.current) => pid === 'p1' ? k : k + ':' + pid;
+  // S.timer becomes an accessor: the first kid's timer lives in S._timer, others in S.timers[id]
+  S._timer = S._timer !== undefined ? S._timer : (S.timer || null); delete S.timer; S.timers = S.timers || {};
+  Object.defineProperty(S, 'timer', { enumerable: false, configurable: true,
+    get(){ return P.current === 'p1' ? S._timer : (S.timers[P.current] || null); },
+    set(v){ if (P.current === 'p1') S._timer = v; else S.timers[P.current] = v; } });
   // Starter set: every new visitor gets these channels; a parent can remove or add more.
   const AV = p => 'https://yt3.googleusercontent.com/' + p + '=s176-c-k-c0x00ffffff-no-rj'; // channel avatar
   const STARTER = [
@@ -383,7 +481,9 @@
     { id: 'zwHq8wAi3L0', title: 'Растяжка для детей 5–8 лет', channel: 'UNICEF Belarus', cat: 'move' },
   ];
   const SEED_VERSION = 3; // bump when STARTER changes: existing users get the new channels/avatars merged in
-  if ((S.seedVersion || 0) < SEED_VERSION) {
+  // A brand-new install gets nothing automatically: the parent approves channels in the onboarding screen first.
+  const freshInstall = !S.seedVersion && !S.channels.length && !S.videos.length;
+  if (!freshInstall && (S.seedVersion || 0) < SEED_VERSION) {
     STARTER.forEach(c => {
       const ex = S.channels.find(x => x.id === c.id);
       if (!ex) S.channels.push({ id: c.id, name: c.name, cat: c.cat, thumb: AV(c.av) });
@@ -531,12 +631,69 @@
   const FAV_KEY = 'kidtube.favs', PROG_KEY = 'kidtube.progress', LOG_KEY = 'kidtube.log';
   function jload(k, d){ try { return JSON.parse(localStorage.getItem(k)) || d; } catch { return d; } }
   function jsave(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
-  let favs = jload(FAV_KEY, {}), prog = jload(PROG_KEY, {}), wlog = jload(LOG_KEY, []);
+  let favs, prog, wlog, watched = null;
+  function loadProfileData(){ watched = null; favs = jload(pk(FAV_KEY), {}); prog = jload(pk(PROG_KEY), {}); wlog = jload(pk(LOG_KEY), []); }
+  loadProfileData();
+
+  // ---- profile UI: header chip, "Who's watching?" picker, parent management ----
+  const EMOJIS = ['🐣','🦊','🐼','🦄','🐬','🐸','🦁','🐰','🐯','🐧','🐻','🐨'];
+  function renderProfChip(){
+    const b = $('#profBtn'); const p = curProf();
+    b.hidden = P.list.length < 2;
+    $('#profEmoji').textContent = p.emoji; $('#profName').textContent = p.name;
+  }
+  function switchProfile(id){
+    if (!P.list.some(p => p.id === id)) return;
+    stop();
+    P.current = id; saveP();
+    loadProfileData(); logEntry = null; graceMode = false;
+    renderProfChip(); renderTime(); render();
+    $('#profModal').hidden = true;
+    try { sessionStorage.setItem('kidtube.picked', '1'); } catch {}
+    if (!T.active() && (S.channels.length || S.videos.length) && !isLocalFile) showStart();
+  }
+  function showProfPicker(){
+    const box = $('#ptiles'); box.innerHTML = '';
+    P.list.forEach(p => {
+      const tm = p.id === 'p1' ? S._timer : S.timers[p.id];
+      const left = tm && tm.day === today() ? Math.max(0, tm.left) : null;
+      box.append(el('button', {class:'ptile' + (p.id === P.current ? ' on' : ''), onclick: () => switchProfile(p.id)},
+        el('div', {class:'pe'}, p.emoji), el('div', {class:'pn'}, p.name),
+        el('div', {class:'pt'}, left === null ? 'no time set' : left > 0 ? fmt(left) + ' left' : 'time\'s up')));
+    });
+    $('#profModal').hidden = false;
+  }
+  $('#profBtn').onclick = showProfPicker;
+  $('#profClose').onclick = () => { $('#profModal').hidden = true; try { sessionStorage.setItem('kidtube.picked', '1'); } catch {} if (!T.active() && (S.channels.length || S.videos.length)) showStart(); };
+  let newEmoji = EMOJIS[1];
+  EMOJIS.forEach(e => $('#newProfEmoji').append(el('button', {class: e === newEmoji ? 'on' : '', onclick: ev => { ev.preventDefault(); newEmoji = e; [...$('#newProfEmoji').children].forEach(b => b.classList.toggle('on', b.textContent === e)); }}, e)));
+  function renderProfList(){
+    const l = $('#profList'); l.innerHTML = '';
+    P.list.forEach(p => l.append(el('div', {class:'item'},
+      el('div', {class:'pemoji'}, p.emoji),
+      el('input', {class:'pname', type:'text', value: p.name, onchange: e => { p.name = e.target.value.trim() || p.name; e.target.value = p.name; saveP(); renderProfChip(); }}),
+      el('span', {class:'badge' + (p.id === P.current ? ' ok' : '')}, p.id === P.current ? 'watching now' : ''),
+      el('button', {class:'x', title:'Remove', disabled: P.list.length < 2 ? '' : false, onclick: () => {
+        if (!confirm('Remove ' + p.name + '? Their favorites and history will be deleted.')) return;
+        ['kidtube.watched', FAV_KEY, PROG_KEY, LOG_KEY].forEach(k => { try { localStorage.removeItem(pk(k, p.id)); } catch {} });
+        if (p.id !== 'p1') delete S.timers[p.id]; else S._timer = null;
+        P.list = P.list.filter(x => x !== p); saveP(); save();
+        if (P.current === p.id) switchProfile(P.list[0].id);
+        renderProfList(); renderProfChip();
+      }}, '✕'))));
+  }
+  $('#addProf').onclick = () => {
+    const name = $('#newProfName').value.trim(); if (!name) return $('#newProfName').focus();
+    P.list.push({ id: 'p' + Date.now().toString(36), name, emoji: newEmoji }); saveP();
+    $('#newProfName').value = ''; renderProfList(); renderProfChip();
+  };
+  renderProfChip();
+
   const snap = v => ({ id: v.id, title: v.title && v.title !== '…' ? v.title : '', channelName: v.channelName || '', thumb: v.thumb || ('https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg'), chId: v.channel?.id || null, cat: v.cat || v.channel?.cat || view.cat });
   const hydrate = p => ({ ...p, channel: p.chId ? (S.channels.find(c => c.id === p.chId) || null) : null });
   function toggleFav(v){
     if (favs[v.id]) delete favs[v.id]; else favs[v.id] = { ...snap(v), t: Date.now() };
-    jsave(FAV_KEY, favs);
+    jsave(pk(FAV_KEY), favs);
     document.querySelectorAll('.fav').forEach(b => { if (b._vid === v.id) { b.classList.toggle('on', !!favs[v.id]); b.textContent = favs[v.id] ? '♥' : '♡'; } });
     renderShelves();
   }
@@ -561,10 +718,10 @@
       if (pos > dur - 20 || pos / dur > .95) delete prog[currentVideo];
       else if (pos > 10) prog[currentVideo] = { ...currentSnap, pos, dur, t: Date.now() };
       else return;
-      jsave(PROG_KEY, prog);
+      jsave(pk(PROG_KEY), prog);
     } catch {}
   }
-  function clearProgress(id){ if (prog[id]) { delete prog[id]; jsave(PROG_KEY, prog); } }
+  function clearProgress(id){ if (prog[id]) { delete prog[id]; jsave(pk(PROG_KEY), prog); } }
 
   // ---------------- watch log (for parents) ----------------
   let logEntry = null; // the log row for the video currently playing
@@ -574,15 +731,56 @@
     if (last && last.id === currentVideo && last.day === today() && Date.now() - last.end < 30*60e3) { logEntry = last; return; }
     logEntry = { id: currentVideo, title: currentSnap.title, channelName: currentSnap.channelName, cat: currentSnap.cat, day: today(), start: Date.now(), end: Date.now(), sec: 0 };
     wlog.push(logEntry); if (wlog.length > 600) wlog.splice(0, wlog.length - 600);
-    jsave(LOG_KEY, wlog);
+    jsave(pk(LOG_KEY), wlog);
   }
   function logTick(dt){ if (!logEntry) return; logEntry.sec += dt; logEntry.end = Date.now(); if (!logEntry.title && currentSnap?.title) logEntry.title = currentSnap.title; }
-  function logFlush(){ if (logEntry) jsave(LOG_KEY, wlog); }
+  function logFlush(){ if (logEntry) jsave(pk(LOG_KEY), wlog); }
+  const CAT_COLORS = { cartoons: '#ff4d6d', learn: '#3b82f6', move: '#f59e0b', craft: '#10b981' };
+  function hm(sec){ const m = Math.round(sec/60); return m >= 60 ? Math.floor(m/60) + 'h ' + String(m%60).padStart(2,'0') + 'm' : m + ' min'; }
+  function weekOverview(rows, pid){
+    const since = Date.now() - 7*864e5;
+    const wk = rows.filter(e => e.start > since && e.sec >= 5);
+    const total = wk.reduce((a,e) => a + e.sec, 0);
+    const prof = P.list.find(p => p.id === pid) || curProf();
+    const box = el('div', {class:'week'});
+    if (!total) { box.append(el('div', {class:'big'}, '0 min'), el('div', {class:'sub hint'}, 'Nothing watched in the last 7 days' + (P.list.length > 1 ? ' by ' + prof.name : '') + '.')); return box; }
+    const perCat = {}; wk.forEach(e => perCat[e.cat] = (perCat[e.cat] || 0) + e.sec);
+    const perCh = {}; wk.forEach(e => { const k = e.channelName || '—'; perCh[k] = (perCh[k] || 0) + e.sec; });
+    const topCh = Object.entries(perCh).sort((a,b) => b[1] - a[1])[0];
+    const daysActive = new Set(wk.map(e => e.day)).size;
+    const avgSession = total / wk.length, avgDay = total / Math.max(1, daysActive);
+    const bars = el('div', {class:'bars'}), legend = el('div', {class:'legend'});
+    CATS.filter(k => perCat[k.id]).sort((a,b) => perCat[b.id] - perCat[a.id]).forEach(k => {
+      const pct = Math.round(perCat[k.id] / total * 100);
+      bars.append(el('i', {style: 'width:' + (perCat[k.id] / total * 100).toFixed(1) + '%;background:' + CAT_COLORS[k.id]}));
+      legend.append(el('span', {style: '--c:' + CAT_COLORS[k.id]}, k.label + ' ' + pct + '%'));
+    });
+    box.append(
+      el('div', {class:'big'}, hm(total) + ' this week'),
+      el('div', {class:'sub hint', style:'margin:2px 0 0'}, (P.list.length > 1 ? prof.name + ' · ' : '') + wk.length + ' video' + (wk.length > 1 ? 's' : '') + ' on ' + daysActive + ' day' + (daysActive > 1 ? 's' : '')),
+      bars, legend,
+      el('div', {class:'facts'},
+        el('div', {class:'fact'}, el('small', {}, 'Most watched channel'), el('b', {}, topCh[0]), el('small', {}, hm(topCh[1]))),
+        el('div', {class:'fact'}, el('small', {}, 'Average session'), el('b', {}, hm(avgSession))),
+        el('div', {class:'fact'}, el('small', {}, 'Average per day watched'), el('b', {}, hm(avgDay)))));
+    const suggested = Math.max(15, Math.round(avgDay / 60 * 0.8 / 5) * 5);
+    const act = el('div', {class:'act'});
+    const st = el('span', {class:'hint', style:'margin:0'}, prof.defaultMin ? 'Start screen suggests ' + prof.defaultMin + ' min per day.' : 'Start screen suggests 30 min per day.');
+    act.append(el('button', {class:'btn light', onclick: () => { prof.defaultMin = suggested; saveP(); st.textContent = 'Done — the start screen will suggest ' + suggested + ' min per day (about 20% less than this week).'; }}, 'Watched too much → suggest ' + suggested + ' min/day next week'), st);
+    box.append(act);
+    return box;
+  }
+  function logPid(){ const s = $('#logProf'); return s.hidden ? P.current : (s.value || P.current); }
   function renderLog(){
+    const sel = $('#logProf'); sel.hidden = P.list.length < 2;
+    if (!sel.hidden && sel.dataset.n !== String(P.list.length)) { sel.innerHTML = ''; P.list.forEach(p => sel.append(el('option', {value: p.id, selected: p.id === P.current ? '' : false}, p.emoji + ' ' + p.name))); sel.dataset.n = P.list.length; }
+    const pid = logPid();
+    const rows0 = pid === P.current ? wlog : jload(pk(LOG_KEY, pid), []);
     const b = $('#logBody'); b.innerHTML = '';
+    b.append(weekOverview(rows0, pid));
     const cut = Date.now() - 14*864e5;
     const days = {};
-    wlog.filter(e => e.start > cut && e.sec >= 5).forEach(e => (days[e.day] = days[e.day] || []).push(e));
+    rows0.filter(e => e.start > cut && e.sec >= 5).forEach(e => (days[e.day] = days[e.day] || []).push(e));
     const keys = Object.keys(days).sort().reverse();
     if (!keys.length) { b.append(el('div', {class:'hint'}, 'Nothing watched yet.')); return; }
     const mins = s => { const m = Math.round(s/60); return m ? m + ' min' : Math.round(s) + ' s'; };
@@ -725,10 +923,9 @@
 
   // ---------------- watched videos ----------------
   const WATCH_KEY = 'kidtube.watched';
-  let watched = null;
-  function loadWatched(){ if (!watched) { try { watched = JSON.parse(localStorage.getItem(WATCH_KEY) || '{}'); } catch { watched = {}; } } return watched; }
+  function loadWatched(){ if (!watched) { try { watched = JSON.parse(localStorage.getItem(pk(WATCH_KEY)) || '{}'); } catch { watched = {}; } } return watched; }
   function isWatched(id){ return !!loadWatched()[id]; }
-  function markWatched(id){ loadWatched()[id] = Date.now(); try { localStorage.setItem(WATCH_KEY, JSON.stringify(watched)); } catch {}
+  function markWatched(id){ loadWatched()[id] = Date.now(); try { localStorage.setItem(pk(WATCH_KEY), JSON.stringify(watched)); } catch {}
     document.querySelectorAll('.vcard').forEach(c => { if (c._vid === id && !c.classList.contains('watched')) { c.classList.add('watched'); c.querySelector('.thumb')?.append(el('span',{class:'seen'}, '✓ Watched')); } }); }
 
   // ---------------- screen-time timer ----------------
@@ -773,7 +970,13 @@
     const f = $('#player .frame'); f.querySelectorAll('.toast').forEach(t => t.remove());
     const t = el('div', {class:'toast'}, text); f.append(t); setTimeout(() => t.remove(), 6000);
   }
-  function showStart(){ $('#startModal').hidden = false; $('#startStatus').textContent = ''; }
+  function showStart(){
+    $('#startModal h3').textContent = P.list.length > 1 ? '⏱️ How long can ' + curProf().name + ' watch today?' : '⏱️ How long can we watch today?';
+    const d = curProf().defaultMin || 30; const preset = $('#bigpick button[data-min="' + d + '"]');
+    $('#bigpick .on')?.classList.remove('on'); $('#customMin').value = '';
+    if (preset) preset.classList.add('on'); else $('#customMin').value = d;
+    $('#startModal').hidden = false; $('#startStatus').textContent = '';
+  }
   function showDone(){ $('#doneModal').hidden = false; }
   $('#startClose').onclick = () => { $('#startModal').hidden = true; };
   $('#bigpick').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#bigpick .on')?.classList.remove('on'); b.classList.add('on'); $('#customMin').value = ''; };
@@ -844,9 +1047,45 @@
     save(); renderTime();
     if (T.active() && S.timer.left <= 0) showDone();
   }
+  // ---------------- onboarding: parent approves the recommended channels ----------------
+  function showOnboarding(){
+    const list = $('#onbList'); list.innerHTML = '';
+    const missing = STARTER.filter(c => !S.channels.some(x => x.id === c.id));
+    $('#onbCount').textContent = STARTER.length;
+    $('#onbHint').textContent = S.pinHash ? '' : 'You will create a 4-digit parent PIN next.';
+    CATS.forEach(k => {
+      const items = STARTER.filter(c => c.cat === k.id); if (!items.length) return;
+      list.append(el('div', {class:'onb-cat'}, k.ico + ' ' + k.label));
+      items.forEach(c => {
+        const added = !missing.includes(c);
+        list.append(el('label', {class:'onb-item' + (added ? ' added' : '')},
+          el('input', {type:'checkbox', value: c.id, checked: '', disabled: added ? '' : false}),
+          avatar({id: c.id, name: c.name, thumb: AV(c.av)}), el('b', {}, c.name)));
+      });
+    });
+    $('#onbModal').hidden = false;
+  }
+  function onbSelected(){ return [...document.querySelectorAll('#onbList input:checked:not(:disabled)')].map(i => i.value); }
+  $('#onbAll').onclick = () => document.querySelectorAll('#onbList input:not(:disabled)').forEach(i => i.checked = true);
+  $('#onbNone').onclick = () => document.querySelectorAll('#onbList input:not(:disabled)').forEach(i => i.checked = false);
+  function finishOnboarding(ids){
+    const wasFresh = !S.seedVersion;
+    ids.forEach(id => { const c = STARTER.find(x => x.id === id); if (c && !S.channels.some(x => x.id === id)) S.channels.push({ id: c.id, name: c.name, cat: c.cat, thumb: AV(c.av) }); });
+    if (wasFresh && ids.length) STARTER_VIDEOS.forEach(v => { if (!S.videos.some(x => x.id === v.id)) S.videos.push({...v}); });
+    S.seeded = true; S.seedVersion = SEED_VERSION; save();
+    $('#onbModal').hidden = true; render();
+    if (!T.active() && (S.channels.length || S.videos.length)) showStart();
+  }
+  $('#onbApprove').onclick = () => { const ids = onbSelected(); if (!S.pinHash) openPin('set', () => finishOnboarding(ids)); else finishOnboarding(ids); };
+  $('#onbSkip').onclick = () => { if (!S.pinHash) openPin('set', () => finishOnboarding([])); else finishOnboarding([]); };
+  $('#onbClose').onclick = () => { $('#onbModal').hidden = true; };
+
   ticker = setInterval(tick, 1000);
   renderTime();
-  if (!T.active() && (S.channels.length || S.videos.length) && !isLocalFile) showStart();
+  let pickedThisSession = false; try { pickedThisSession = !!sessionStorage.getItem('kidtube.picked'); } catch {}
+  if (freshInstall && !isLocalFile) showOnboarding();
+  else if (P.list.length > 1 && !pickedThisSession && !isLocalFile) showProfPicker();
+  else if (!T.active() && (S.channels.length || S.videos.length) && !isLocalFile) showStart();
   $('#backBtn').onclick = stop;
   $('#homeBtn').onclick = () => { stop(); go({type:'home'}); };
   document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (!$('#player').hidden) stop(); } });
@@ -903,7 +1142,7 @@
     return sel;
   }
   ['#chCat','#vidCat'].forEach(id => { const s = $(id); CATS.forEach(k => s.append(el('option', {value:k.id}, k.ico + ' ' + k.label))); });
-  function openSettings(){ $('#setModal').hidden = false; refreshLists(); $('#keyInput').value = S.apiKey; $('#limitInput').value = S.limit; keyBadge(); }
+  function openSettings(){ $('#setModal').hidden = false; refreshLists(); renderProfList(); $('#keyInput').value = S.apiKey; $('#limitInput').value = S.limit; keyBadge(); }
   function closeSettings(){ $('#setModal').hidden = true; render(); }
   $('#setClose').onclick = closeSettings;
   document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
@@ -911,7 +1150,8 @@
     ['channels','videos','options','log'].forEach(t => $('#tab-' + t).hidden = t !== b.dataset.tab);
     if (b.dataset.tab === 'log') renderLog();
   });
-  $('#logClear').onclick = () => { if (!confirm('Clear the whole watch log?')) return; wlog = []; logEntry = null; jsave(LOG_KEY, wlog); renderLog(); };
+  $('#logProf').onchange = renderLog;
+  $('#logClear').onclick = () => { if (!confirm('Clear the whole watch log?')) return; const pid = logPid(); if (pid === P.current) { wlog = []; logEntry = null; } jsave(pk(LOG_KEY, pid), []); renderLog(); };
   function status(id, text, ok){ const s = $(id); s.textContent = text; s.className = 'status ' + (ok === true ? 'ok' : ok === false ? 'err' : ''); }
   function keyBadge(){ const b = $('#keyBadge'); b.textContent = S.apiKey ? 'active' : 'not set'; b.className = 'badge' + (S.apiKey ? ' ok' : ''); }
 
@@ -994,8 +1234,9 @@
   $('#limitSave').onclick = () => { const n = parseInt($('#limitInput').value, 10); S.limit = Math.min(50, Math.max(1, n || 24)); $('#limitInput').value = S.limit; cache.clear(); save(); };
   $('#refreshBtn').onclick = () => { cache.clear(); try { localStorage.removeItem(PL_KEY); } catch {} status('#keyStatus', 'Video lists will reload when you close settings.', true); };
   $('#optTimeBtn').onclick = () => { $('#setModal').hidden = true; showStart(); };
-  $('#clearWatched').onclick = () => { watched = {}; try { localStorage.removeItem(WATCH_KEY); } catch {} status('#keyStatus', 'Watched marks cleared.', true); };
+  $('#clearWatched').onclick = () => { watched = {}; try { localStorage.removeItem(pk(WATCH_KEY)); } catch {} status('#keyStatus', 'Watched marks cleared for ' + curProf().name + '.', true); };
   $('#optTimeReset').onclick = () => { S.timer = null; save(); renderTime(); status('#keyStatus', 'Timer cleared.', true); };
+  $('#optOnb').onclick = () => { $('#setModal').hidden = true; showOnboarding(); };
   $('#pinChange').onclick =() => { $('#setModal').hidden = true; openPin('set', openSettings); };
   $('#exportBtn').onclick = async () => {
     const data = JSON.stringify({channels: S.channels, videos: S.videos, apiKey: S.apiKey, limit: S.limit});
